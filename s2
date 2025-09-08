@@ -1,0 +1,96 @@
+import pygame
+import random
+import sys
+
+# 初始化
+pygame.init()
+
+# 窗口大小
+WIDTH, HEIGHT = 600, 400
+CELL = 20  # 格子大小
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("贪吃蛇")
+
+# 颜色
+BLACK = (0, 0, 0)
+GREEN = (0, 200, 0)
+RED = (200, 0, 0)
+WHITE = (255, 255, 255)
+
+# 初始化蛇
+snake = [(100, 100), (80, 100), (60, 100)]  # 初始三个身体
+direction = "RIGHT"  # 初始方向
+
+# 食物
+food = (random.randrange(0, WIDTH // CELL) * CELL,
+        random.randrange(0, HEIGHT // CELL) * CELL)
+
+# 时钟
+clock = pygame.time.Clock()
+
+def draw_snake(snake):
+    for x, y in snake:
+        pygame.draw.rect(screen, GREEN, (x, y, CELL, CELL))
+
+def draw_food(food):
+    pygame.draw.rect(screen, RED, (food[0], food[1], CELL, CELL))
+
+def game_over():
+    font = pygame.font.SysFont("Arial", 40)
+    text = font.render("Game Over", True, WHITE)
+    rect = text.get_rect(center=(WIDTH//2, HEIGHT//2))
+    screen.blit(text, rect)
+    pygame.display.update()
+    pygame.time.wait(2000)
+    pygame.quit()
+    sys.exit()
+
+# 游戏主循环
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP and direction != "DOWN":
+                direction = "UP"
+            elif event.key == pygame.K_DOWN and direction != "UP":
+                direction = "DOWN"
+            elif event.key == pygame.K_LEFT and direction != "RIGHT":
+                direction = "LEFT"
+            elif event.key == pygame.K_RIGHT and direction != "LEFT":
+                direction = "RIGHT"
+
+    # 蛇头移动
+    x, y = snake[0]
+    if direction == "UP":
+        y -= CELL
+    elif direction == "DOWN":
+        y += CELL
+    elif direction == "LEFT":
+        x -= CELL
+    elif direction == "RIGHT":
+        x += CELL
+    new_head = (x, y)
+
+    # 撞墙/撞自己
+    if (x < 0 or x >= WIDTH or y < 0 or y >= HEIGHT or new_head in snake):
+        game_over()
+
+    # 吃食物
+    if new_head == food:
+        snake.insert(0, new_head)
+        food = (random.randrange(0, WIDTH // CELL) * CELL,
+                random.randrange(0, HEIGHT // CELL) * CELL)
+    else:
+        snake.insert(0, new_head)
+        snake.pop()
+
+    # 绘制
+    screen.fill(BLACK)
+    draw_snake(snake)
+    draw_food(food)
+    pygame.display.update()
+
+    # 控制速度
+    clock.tick(10)
